@@ -47,6 +47,11 @@ clearButton.addEventListener('click', () => {
     secondOperand = '';
 })
 
+const signButton = document.querySelector("#sign");
+signButton.addEventListener('click', () => {
+    displayValue.textContent = -1 * Number(displayValue.textContent);
+})
+
 const digitButtons = document.querySelectorAll('.digit');
 digitButtons.forEach(button => {
     button.addEventListener('click', () => {
