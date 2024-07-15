@@ -1,3 +1,5 @@
+let displayValue = '0';
+
 let firstOperand = '';
 let operator = '';
 let secondOperand = '';
@@ -34,5 +36,4 @@ function operate(operator, a, b) {
         default:
             return null; 
     }
-
 }
