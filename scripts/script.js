@@ -1,5 +1,3 @@
-let displayValue = '0';
-
 let firstOperand = '';
 let operator = '';
 let secondOperand = '';
@@ -37,3 +35,29 @@ function operate(operator, a, b) {
             return null; 
     }
 }
+
+const displayValue = document.querySelector('#display');
+
+const clearButton = document.querySelector('#AC');
+clearButton.addEventListener('click', () => {
+    displayValue.textContent = '0';
+    clearButton.value = 'AC';
+    firstOperand = '';
+    operator = '';
+    secondOperand = '';
+})
+
+const digitButtons = document.querySelectorAll('.digit');
+digitButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        if (displayValue.textContent === '0') displayValue.textContent = '';
+        displayValue.textContent += button.value;
+        clearButton.value = 'C';
+    });
+});
+
+const decimalButton = document.querySelector('#decimal');
+decimalButton.addEventListener('click', () => {
+    if (displayValue.textContent.includes('.')) return;
+    displayValue.textContent += '.';
+})

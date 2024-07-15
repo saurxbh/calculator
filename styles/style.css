@@ -27,6 +27,8 @@
     text-align: right;
     font-weight: 500;
     font-size: 2rem;
+    word-wrap: break-word;
+    word-break: break-all;
 }
 
 #buttons {
@@ -56,12 +58,14 @@
     background-color: #eae8e6;
 }
 
-.digit {
+.digit,
+.decimal {
     color: white;
     background-color: rgb(77, 76, 76);
 }
 
-.digit:hover {
+.digit:hover,
+.decimal:hover {
     background-color: #b8b8b8;
 }
 
