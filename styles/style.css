@@ -69,13 +69,20 @@
     background-color: #b8b8b8;
 }
 
-.function {
+.function,
+.equals {
     color: white;
     background-color: #FCB31B;
 }
 
-.function:hover {
+.function:hover,
+.equals:hover {
     background-color: #ffe09d;
+}
+
+.selected {
+    color:#FCB31B;
+    background-color: white;
 }
 
 #digit0 {
