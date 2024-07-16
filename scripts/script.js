@@ -6,6 +6,8 @@ let secondOperand = '';
 let resetScreen = false;
 let equation = '';
 let result = 0;
+let calculated = false;
+let carry = 0;
 
 function roundResult(number) {
     return Math.round(number * 1000) / 1000;
@@ -61,7 +63,10 @@ clearButton.addEventListener('click', () => {
     previousOperation = null;
     secondOperand = '';
     equation = '';
+    carry = 0;
     result = 0;
+    resetScreen = false;
+    calculated = false; 
 })
 
 const signButton = document.querySelector("#sign");
@@ -98,6 +103,9 @@ digitButtons.forEach(button => {
         equation += button.value;
         clearButton.value = 'C';
         resetScreen = false;
+        calculated = false;
+        // Code to retrieve previous operation
+        previousOperation = currentOperation;
     });
 });
 
@@ -106,81 +114,140 @@ functionButtons.forEach(button => {
     button.addEventListener('click', () => {
         if (equation.length === 0) return; // check display
         else {
-                currentOperation = button.value;
-                //make sure the last selected operation is selected
-                let lastChar = equation.charAt(equation.length - 1);
-                if (lastChar === '+' || lastChar === '-' || lastChar === '×' || lastChar === '÷') equation = equation.slice(0, -1);
-                equation += currentOperation;
+            currentOperation = button.value;
+            //make sure the last selected operation is selected
+            let lastChar = equation.charAt(equation.length - 1);
+            if (lastChar === currentOperation) return;
+            if ((lastChar === '+' && currentOperation === '-') || (lastChar === '-' && currentOperation === '+') || 
+                (lastChar === '×' && currentOperation === '÷') || (lastChar === '÷' && currentOperation === '×')) return;
+            if (lastChar === '+' || lastChar === '-' || lastChar === '×' || lastChar === '÷') {
+                equation = equation.slice(0, -1);
+            }
+            equation += currentOperation;
 
-                //for when an operator is pressed for the very first time
-                let arr = equation.split(currentOperation);
-                if (arr.length === 2 && !isNaN(arr[0]) && currentOperation === '=') {
-                    displayValue.textContent = '0';
-                    clearButton.value = 'AC';
-                    firstOperand = '';
-                    currentOperation = null;
-                    previousOperand = '';
-                    previousOperation = null;
-                    secondOperand = '';
-                    equation = '';
-                    result = 0;
-                }
-                if (arr.length === 2 && !isNaN(arr[0])) {
-                    previousOperand = displayValue.textContent;
-                    previousOperation = currentOperation;
-                    resetScreen = true;
-                    console.log(`previousOperand ${previousOperand}`);
-                    console.log(`equation ${equation}`);
-                    console.log(`previousOperation ${previousOperation}`);
-                    return;
-                }
-                console.log(`AFTERpreviousOperand ${previousOperand}`);
-                console.log(`AFTERequation ${equation}`);
-                console.log(`AFTERpreviousOperation ${previousOperation}`);
-                //calculating first operation and BODMAS rules
-                if (currentOperation === '+' || currentOperation === '-') { ////IF WORKING CORRECTLY
-                    currentOperation = previousOperation;
-                    firstOperand = previousOperand;
-                    previousOperand = evaluate(); //store value, earlier + or - gets solved at this step
-                    displayValue.textContent = previousOperand;
+            //for when an operator is pressed for the very first time
+            let arr = equation.split(currentOperation);
+            if (arr.length === 2 && !isNaN(arr[0]) && currentOperation === '=') {
+                displayValue.textContent = arr[0];
+                clearButton.value = 'C';
+                firstOperand = '';
+                currentOperation = null;
+                previousOperand = '';
+                previousOperation = null;
+                secondOperand = '';
+                equation = displayValue.textContent;
+                result = arr[0];
+                resetScreen = true;
+                return;
+            }
+            if (arr.length === 2 && !isNaN(arr[0]) && previousOperand === '') {
+                previousOperand = displayValue.textContent;
+                previousOperation = currentOperation;
+                resetScreen = true;
+                console.log(`previousOperand ${previousOperand}`);
+                console.log(`equation ${equation}`);
+                console.log(`previousOperation ${previousOperation}`);
+                return;
+            }
+            console.log(`AFTERpreviousOperand ${previousOperand}`);
+            console.log(`AFTERequation ${equation}`);
+            console.log(`AFTERpreviousOperation ${previousOperation}`);
 
-                    currentOperation = equation.charAt(equation.length - 1);
-                    equation = String(previousOperand).concat(currentOperation);
-                    previousOperation = currentOperation;
-                } else if ((currentOperation === '×' || currentOperation === '÷') && (previousOperation === '×' || previousOperation === '÷')) {
-                    currentOperation = previousOperation;
+            //calculating first operation and BODMAS rules
+            if ((currentOperation === '+' || currentOperation === '-') && (previousOperation === '+' || previousOperation === '-')) {
+                currentOperation = previousOperation;
+                if (!calculated) {
                     firstOperand = previousOperand;
-                    previousOperand = evaluate()
+                    previousOperand = evaluate(); //display value captured, earlier expression evaluated, could be anything
                     displayValue.textContent = previousOperand;
-                    currentOperation = equation.charAt(equation.length - 1);
-                    equation = String(previousOperand).concat(currentOperation);
-                    previousOperation = currentOperation;
-                } else if ((currentOperation === '×' || currentOperation === '÷') && (previousOperation === '+' || previousOperation === '-')) {
-                    let arr = equation.split(previousOperation);
-                    previousOperand = arr[0];
-                    firstOperand = arr[arr.length - 1].split(currentOperation)[0];
-                    console.log(`${firstOperand}, ${currentOperation},`);
-                    let temp = evaluate();
-                    firstOperand = previousOperand;
-                    console.log(`${firstOperand}, ${previousOperation}, ${temp}`);
-                    previousOperand = operate(previousOperation, firstOperand, temp);
-                    displayValue.textContent = previousOperand;
-                    equation = String(previousOperand).concat(currentOperation);
-                    previousOperation = currentOperation;
+                    //carry = previousOperand;
+                    calculated = true;
                 } else {
-                    currentOperation = previousOperation;
-                    //console.log(`currentOperation ${currentOperation}`);
+                    firstOperand = carry;
+                    previousOperand = evaluate(); //display value captured HAVE TO CHECK THIS
+                    displayValue.textContent = previousOperand;
+                    //carry = previousOperand;
+                    calculated = true;
+                }
+                currentOperation = equation.charAt(equation.length - 1);
+                //equation = previousOperand.concat(currentOperation);
+                console.log(`equation, ${equation}`);
+
+            } else if ((currentOperation === '×' || currentOperation === '÷') && (previousOperation === '+' || previousOperation === '-')) {
+                console.log(`previousOperation,${previousOperation}`);
+                console.log(`currentOperation,${currentOperation}`);
+                currentOperation = previousOperation;
+                if (!calculated) { // Display hasn't changed
+                    carry = Number(previousOperand);
+                    console.log(`carry, ${carry}`);
+                    previousOperand = displayValue.textContent;
+                    previousOperand = previousOperation === '+' ? previousOperand : -1 * Number(previousOperand);
+                    calculated = true;
+                } else { // Display has changed
+                    carry = previousOperation === '+' ? carry - secondOperand: carry + secondOperand;
+                    displayValue.textContent = secondOperand;
+                    previousOperand = secondOperand;
+                    previousOperand = previousOperation === '+' ? previousOperand : -1 * Number(previousOperand);
+                    calculated = true;
+                }
+                currentOperation = equation.charAt(equation.length - 1);
+                console.log(`equation, ${equation}`);
+                console.log(`carry, ${carry}, previousOperand, ${previousOperand}`);
+
+            } else if ((currentOperation === '+' || currentOperation === '-') && (previousOperation === '×' || previousOperation === '÷')) {
+                currentOperation = previousOperation;
+                if (!calculated) {
                     firstOperand = previousOperand;
-                    //console.log(`firstOperand ${firstOperand}`);
-                    displayValue.textContent = evaluate();
+                    console.log(`''''${carry}`);
+                    previousOperand = carry + evaluate();
+                    displayValue.textContent = previousOperand;
+                    carry = 0;
+                    calculated = true;
+                } else {
+                    firstOperand = previousOperand;
+                    previousOperand = carry + evaluate();
+                    displayValue.textContent = previousOperand;
+                    carry = 0;
+                    calculated = true;
+                }
+                currentOperation = equation.charAt(equation.length - 1);
+                console.log(`equation, ${equation}`);
+
+            } else if ((currentOperation === '×' || currentOperation === '÷') && (previousOperation === '×' || previousOperation === '÷')) {
+                console.log(`previousOperation,${previousOperation}`);
+                console.log(`currentOperation,${currentOperation}`);
+                currentOperation = previousOperation;
+                if (!calculated) {
+                    firstOperand = previousOperand;
+                    previousOperand = evaluate(); // display value captured, earlier expression evaluated only if it is product or division
+                    displayValue.textContent = previousOperand;
+                    calculated = true;
+                } else {
+                    let temp = previousOperation === '×' ? firstOperand * secondOperand : firstOperand / secondOperand;
+                    carry = previousOperand - temp;
+                    previousOperand -= carry;
+                    displayValue.textContent = previousOperand;
+                    calculated = true;
+                }
+                currentOperation = equation.charAt(equation.length - 1);
+                console.log(`equation, ${equation}`);
+
+            } else {
+                    currentOperation = previousOperation;
+                    console.log(`currentOperation ${currentOperation}`);
+                    firstOperand = previousOperand;
+                    console.log(`firstOperand ${firstOperand}`);
+                    displayValue.textContent = carry + evaluate();
                     //console.log(displayValue.textContent);
                     previousOperand = '';
                     previousOperation = null;
                     firstOperand = '';
                     secondOperand = '';
-                    currentOperation = '';
+                    currentOperation = null;
                     equation = '';
                     result = 0;
+                    calculated = false;
+                    carry = 0;
                 }
                 resetScreen = true;
             }          
